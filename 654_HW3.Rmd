@@ -133,6 +133,11 @@ blueprint_oregon <- recipe(x     = oregon,
 Split the original data into two subsets: training and test. Let the training data have the 80% of cases and the test data have the 20% of the cases.
 ```{r 2.1}
 
+set.seed(12012021)  # for reproducibility
+  
+loc      <- sample(1:nrow(oregon), round(nrow(oregon) * 0.8))
+ordata_train  <- oregon[loc, ]
+ordata_test  <- oregon[-loc, ]
 
 ```
 
@@ -140,26 +145,109 @@ Split the original data into two subsets: training and test. Let the training da
 Use the caret::train() function and ranger engine to train a model with 10-fold cross-validation for predicting the scores using a Bagged Trees model with 500 trees.
 ```{r 2.2}
 
+cv   <- trainControl(method = "none")
+
+grid <- expand.grid(mtry = 27,splitrule='variance',min.node.size=2)
+grid
+
+or_baggedtrees <- caret::train(blueprint_oregon,
+                             data      = ordata_train,
+                             method    = 'ranger',
+                             trControl = cv,
+                             tuneGrid  = grid,
+                             metric = 'logLoss',
+                             num.trees = 500,
+                             max.depth = 60)
+ 
+or_baggedtrees$times
 
 ```
 
 ##Task 2.3. 
 Use the caret::train() function and ranger engine to train a model with 10-fold cross-validation for predicting the scores using a Random Forest model with 500 trees. Set the number of predictors to consider to 250 for each tree while growing a random forest.
 ```{r 2.3}
+cv   <- trainControl(method = "none")
 
+rgrid <- expand.grid(mtry = 250,splitrule='variance',min.node.size=2)
+rgrid
 
+or_rforest <- caret::train(blueprint_oregon,
+                        data      = ordata_train,
+                        method    = 'ranger',
+                        trControl = cv,
+                        tuneGrid  = grid,
+                        num.trees = 500,
+                        max.depth = 60)
+ 
+or_rforest$times
 
 ```
 
 ##Task 2.4 
-Evaluate the performance of the Bagged Tree models (2.2) and Random Forest Model (2.3) on the test dataset. Calculate and report the root mean squared error (RMSE), mean absolute error (MAE), and R-square. Summarize these numbers in a table like the following.
+Evaluate the performance of the Bagged Tree models (2.2) and Random Forest Model (2.3) on the test dataset. Calculate and report the root mean squared error (RMSE), mean absolute error (MAE), and R-square. 
 ```{r 2.4}
+#checking bagged tree model on the test dataset
+ordata_predict_test <- predict(or_baggedtrees, ordata_test)
 
+#calculate RMSE for bagged tree model
+bag_rmse <- sqrt(mean((ordata_test$target - ordata_predict_test)^2))
+bag_rmse
+#for some reason, this is coming up NaN
+
+#calculate MAE for bagged tree model
+orpredicted_te <- predict(or_baggedtrees[[500]], ordata_test)
+
+#MAE
+bag_mae <- mean(abs(ordata_test$target - orpredicted_te))
+bag_mae
+
+#calculate rsqd for bagged tree model
+bag_rsqd <- cor(ordata_test$target,orpredicted_te)^2
+bag_rsqd
+
+
+
+#checking random forest model on the test dataset
+rpredict_te <- predict(or_rforest,ordata_test)
+
+# RMSE for random forest model
+ran_rmse <- sqrt(mean((ordata_test$target - rpredict_te)^2))
+ran_rmse
+
+#calculate MAE for random tree model
+test_predict <- predict(or_baggedtrees[[500]], ordata_test)
+
+#MAE
+ran_mae <- mean(abs(ordata_test$target - test_predict))
+bag_mae
+
+#calculate rsqd for bagged tree model
+ran_rsqd <- cor(ordata_test$target, test_predict)^2
+bag_rsqd
 
 
 ```
-		
-##Task 1.5 
+
+##Task 2.4.2
+Summarize these numbers in a table like the following.
+```{r 2.4.2}
+bagmod <- data.frame(Model = c("Bagged Trees Model"),
+                    RMSE = c(bag_rmse),
+                     MAE = c(bag_mae),
+                     Rsq = c(bag_rsqd))
+
+ranmod <- data.frame(Model = c("Random Forest Model"),
+                    RMSE = c(ran_rmse),
+                     MAE = c(ran_mae),
+                     Rsq = c(ran_rsqd))
+
+#Final Table
+SumTable <- rbind(bagmod, ranmod)
+SumTable
+
+```
+
+##Task 2.5 
 Compare the performance of the Bagged Trees Model and Random Forest Model in this assignment to the performance of linear regression models from the previous assignment. Comment on what you observe. Did Bagged Trees or Random Forest Models perform better than Linear Regression Models in predicting the test scores?
 ```{r 1.5}
 
