@@ -268,22 +268,15 @@ Use the caret::train() function and ranger engine to train a model with 10-fold 
 # Cross validation settings 
 ordata_train = ordata_train[sample(nrow(ordata_train)),]
 
-#RL note: the following I used in my cross 10 fold cross validation in Part 1.
-#Haven't tried this for Part 2
-    # Create 10 folds with equal size
-#folds = cut(seq(1,nrow(ordata_train)),breaks=10,labels=FALSE)
+folds = cut(seq(1,nrow(ordata_train)),breaks=10,labels=FALSE)
 
-    # Create the list for each fold 
+my.indices <- vector('list',10)
+    for(i in 1:10){
+      my.indices[[i]] <- which(folds!=i)
+    }
 
-#my.indices <- vector('list',10)
-#    for(i in 1:10){
-#      my.indices[[i]] <- which(folds!=i)
-#    }
-
-#cv <- trainControl(method = "cv",
-#                     index  = my.indices)
-
-cv   <- trainControl(method = "cv")
+cv <- trainControl(method = "cv",
+                     index  = my.indices)
 
 grid <- expand.grid(mtry = 27,splitrule='variance',min.node.size=2)
 grid
@@ -304,7 +297,18 @@ or_baggedtrees$times
 ##Task 2.3. 
 Use the caret::train() function and ranger engine to train a model with 10-fold cross-validation for predicting the scores using a Random Forest model with 500 trees. Set the number of predictors to consider to 250 for each tree while growing a random forest.
 ```{r 2.3}
-cv   <- trainControl(method = "none")
+# Cross validation settings 
+ordata_train = ordata_train[sample(nrow(ordata_train)),]
+
+folds = cut(seq(1,nrow(read_tr)),breaks=10,labels=FALSE)
+     
+my.indices <- vector('list',10)
+    for(i in 1:10){
+      my.indices[[i]] <- which(folds!=i)
+    }
+    
+cv <- trainControl(method = "cv",
+                       index  = my.indices)
 
 rgrid <- expand.grid(mtry = 250,splitrule='variance',min.node.size=2)
 rgrid
