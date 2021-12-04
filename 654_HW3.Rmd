@@ -45,13 +45,45 @@ blueprint_tweet <- recipe(x  = tweet,
 ##Task 1.1. 
 Split the original data into two subsets: training and test. Let the training data have the 80% of cases and the test data have the 20% of the cases.
 ```{r 1.1}
-
+set.seed(12032021)  # for reproducibility
+    
+  loc      <- sample(1:nrow(tweet), round(nrow(tweet) * 0.8))
+  tweet_tr  <- tweet[loc, ]
+  tweet_te  <- tweet[-loc, ]
 
 ```
 
 ##Task 1.2. Use the caret::train() function and ranger engine to train a model with 10-fold cross-validation for predicting the probability of sentiment being positive using a Bagged Trees model with 500 trees.
 ```{r 1.2}
 
+folds = cut(seq(1,nrow(tweet_tr)),breaks=10,labels=FALSE)
+
+my.indices <- vector('list',10)
+    for(i in 1:10){
+      my.indices[[i]] <- which(folds!=i)
+    }
+
+cv <- trainControl(method = "cv",
+                     index  = my.indices,
+                     classProbs = TRUE,
+                     summaryFunction = mnLogLoss)
+
+grid <- expand.grid(mtry = 772,splitrule='gini',min.node.size=2)
+grid
+
+
+bags_tweet <- caret::train(blueprint_tweet,
+data = tweet_tr,
+method = 'ranger',
+trControl = cv,
+tuneGrid = grid,
+metric = 'logLoss',
+num.trees = 500,
+max.depth = 60)
+
+tweet_predicted_te <- predict(bags_tweet, tweet_te, type='prob')
+
+dim(predicted_te)
 
 ```
 
@@ -65,7 +97,16 @@ Use the caret::train() function and ranger engine to train a model with 10-fold 
 ##Task 1.4 
 Evaluate the performance of the Bagged Tree models (1.2) and Random Forest Model (1.3) on the test dataset. Calculate and report logLoss (LL), area under the reciever operating characteristic curver (AUC), overall accuracy (ACC), true positive rate (TPR), true negative rate (TNR), and precision (PRE) for three models. When calculating ACC, TPR, TNR, and PRE, assume that we use a cut-off value of 0.5 for the predicted probabilities. Summarize these numbers in a table like the following. Decide and comment on which model you would use to predict sentiment of a tweet moving forward.
 ```{r 1.4}
+#checking bagged tree model on the test dataset
+tweet_predicted_te <- predict(bags_tweet, tweet_te, type='prob')
 
+# Compute the AUC
+require(cutpointr)
+
+cut.obj <- cutpointr(x     = tweet_predicted_te$Positive,
+                     class = tweet_te$sentiment)
+
+auc(cut.obj)
 
 ```
 		
