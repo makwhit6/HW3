@@ -189,13 +189,12 @@ Table1
 		
 ##Task 1.5 
 Compare the performance of the Bagged Trees Model and Random Forest Model in this assignment to the performance of logistic regression models from the previous assignment. Comment on what you observe. Did Bagged Trees or Random Forest Models perform better than Logistic Regression Models?
-```{r 1.5}
-#The conclusion from the previous assignment was the Logistic Regression with
-#the Ridge Penalty performed the best of the Logistic Regression models. The
-#Logistic Regression with Ridge Penalty also performed better than the Bagged Trees
-#or Random Forest Models with an AUC of .91 and and ACC of .78.
 
-```
+The conclusion from the previous assignment was the Logistic Regression with
+the Ridge Penalty performed the best of the Logistic Regression models. The
+Logistic Regression with Ridge Penalty also performed better than the Bagged Trees
+or Random Forest Models with an AUC of .91 and and ACC of .78.
+
 
 #Part 2: Predicting a Continous Outcome using Regularized Linear Regression
 For this assignment you will work with the Oregon dataset and try to predict the scores.I uploaded the datasets on the website for convenience and to make sure everyone works on the same dataset. Download the Oregon testing dataset using the R code below. Then, also create the blueprint as shown below.
