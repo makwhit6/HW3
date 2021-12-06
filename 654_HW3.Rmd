@@ -254,7 +254,7 @@ blueprint_oregon <- recipe(x     = oregon,
 Split the original data into two subsets: training and test. Let the training data have the 80% of cases and the test data have the 20% of the cases.
 ```{r 2.1}
 
-set.seed(12012021)  # for reproducibility
+set.seed(12012021)
   
 loc      <- sample(1:nrow(oregon), round(nrow(oregon) * 0.8))
 ordata_train  <- oregon[loc, ]
@@ -275,13 +275,13 @@ my.indices <- vector('list',10)
       my.indices[[i]] <- which(folds!=i)
     }
 
-cv <- trainControl(method = "cv",
+cv <- trainControl(method = "none",
                      index  = my.indices)
+#running without cross-validation due to time issues 
 
 grid <- expand.grid(mtry = 27,splitrule='variance',min.node.size=2)
 grid
 
-#this fails after "resample 4"...
 or_baggedtrees <- caret::train(blueprint_oregon,
                              data      = ordata_train,
                              method    = 'ranger',
@@ -307,8 +307,9 @@ my.indices <- vector('list',10)
       my.indices[[i]] <- which(folds!=i)
     }
     
-cv <- trainControl(method = "cv",
+cv <- trainControl(method = "none",
                        index  = my.indices)
+#running without cross-validation due to time issues
 
 rgrid <- expand.grid(mtry = 250,splitrule='variance',min.node.size=2)
 rgrid
@@ -334,7 +335,7 @@ ordata_predict_test <- predict(or_baggedtrees, ordata_test)
 #calculate RMSE for bagged tree model
 bag_rmse <- sqrt(mean((ordata_test$score - ordata_predict_test)^2))
 bag_rmse
-#for some reason, this is coming up NaN
+#90.54204
 
 #calculate MAE for bagged tree model
 orpredicted_te <- predict(or_baggedtrees, ordata_test)
@@ -342,10 +343,12 @@ orpredicted_te <- predict(or_baggedtrees, ordata_test)
 #MAE
 bag_mae <- mean(abs(ordata_test$score - orpredicted_te))
 bag_mae
+#70.07822
 
 #calculate rsqd for bagged tree model
 bag_rsqd <- cor(ordata_test$score,orpredicted_te)^2
 bag_rsqd
+#0.398061
 
 
 
@@ -355,6 +358,7 @@ rpredict_te <- predict(or_rforest,ordata_test)
 # RMSE for random forest model
 ran_rmse <- sqrt(mean((ordata_test$score - rpredict_te)^2))
 ran_rmse
+#90.53776
 
 #calculate MAE for random tree model
 test_predict <- predict(or_baggedtrees, ordata_test)
@@ -362,10 +366,12 @@ test_predict <- predict(or_baggedtrees, ordata_test)
 #MAE
 ran_mae <- mean(abs(ordata_test$score - test_predict))
 bag_mae
+#70.07822
 
 #calculate rsqd for bagged tree model
 ran_rsqd <- cor(ordata_test$score, test_predict)^2
 bag_rsqd
+#0.398061
 
 
 ```
@@ -391,9 +397,7 @@ SumTable
 
 ##Task 2.5 
 Compare the performance of the Bagged Trees Model and Random Forest Model in this assignment to the performance of linear regression models from the previous assignment. Comment on what you observe. Did Bagged Trees or Random Forest Models perform better than Linear Regression Models in predicting the test scores?
-```{r 1.5}
 
+The Bagged Trees and Random Forest Models both performed with higher RMSE and MAE scores, but lower R-squared scores. Due to the higher RMSE scores, I would argue that the models from this assignment performed poorly compared to the previous assignment's models. I would still choose a linear regression model with no penalty to predict scores. 
 
-
-```
 
